@@ -1,4 +1,5 @@
 const express = require("express");
+const { readdirSync } = require("fs");
 const cors = require("cors");
 let allowed = ["http://localhost:3000", "other link"];
 
@@ -23,12 +24,8 @@ function options(req, res) {
 const app = express();
 app.use(cors(options));
 
-app.get("/", (req, res) => {
-  res.send("welcome from home");
-});
-app.get("/books", (req, res) => {
-  res.send("welcome from books");
-});
+readdirSync("./routes").map((r) => app.use("/", require("./routes/" + r)));
+
 app.listen(8000, () => {
   console.log("server is lestining...");
 });
