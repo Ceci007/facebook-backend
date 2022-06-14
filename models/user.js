@@ -36,7 +36,7 @@ const userSchema = mongoose.Schema(
       type: String,
       trim: true,
       default:
-        "https://res.cloudinary.com/dmhcnhtng/image/upload/v1643044376/avatars/default_pic_jeaybr.png",
+        "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
     },
     cover: {
       type: String,
