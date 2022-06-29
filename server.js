@@ -4,6 +4,7 @@ const { readdirSync } = require("fs");
 const dotenv = require("dotenv");
 dotenv.config();
 const cors = require("cors");
+const fileUpload = require("express-fileupload");
 /*
 let allowed = ["http://localhost:3000", "other link"];
 
@@ -28,6 +29,11 @@ function options(req, res) {
 const app = express();
 app.use(express.json());
 app.use(cors(/*options*/));
+app.use(
+  fileUpload({
+    useTempFiles: true,
+  })
+);
 
 // routes
 readdirSync("./routes").map((r) => app.use("/", require("./routes/" + r)));
