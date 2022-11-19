@@ -91,3 +91,12 @@ exports.savePost = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+exports.deletePost = async (req, res) => {
+  try {
+    await Post.findByIdAndRemove(req.params.id);
+    res.json({ status: "Ok" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
