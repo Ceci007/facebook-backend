@@ -562,9 +562,9 @@ exports.deleteRequest = async (req, res) => {
 exports.search = async (req, res) => {
   try {
     const searchTerm = req.params.searchTerm;
-    const results = await User.find({ $text: { $search: searchTerm } })
-      .select("first_name last_name username picture")
-      .limit(20);
+    const results = await User.find({ $text: { $search: searchTerm } }).select(
+      "first_name last_name username picture"
+    );
     res.json(results);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -608,6 +608,22 @@ exports.getSearchHistory = async (req, res) => {
       .select("search")
       .populate("search.user", "first_name last_name username picture");
     res.json(results.search);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.removeFromSearch = async (req, res) => {
+  try {
+    const { searchUser } = req.body;
+    await User.updateOne(
+      {
+        _id: req.user.id,
+      },
+      {
+        $pull: { search: { user: searchUser } },
+      }
+    );
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
