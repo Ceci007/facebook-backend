@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const { ObjectId } = mongoose.Schema;
 
-const postSchema = mongoose.Schema(
+const postSchema = new mongoose.Schema(
   {
     type: {
       type: String,
@@ -42,7 +42,9 @@ const postSchema = mongoose.Schema(
       },
     ],
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 module.exports = mongoose.model("Post", postSchema);

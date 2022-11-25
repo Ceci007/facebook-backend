@@ -23,6 +23,7 @@ const userSchema = mongoose.Schema(
       text: true,
       unique: true,
     },
+
     email: {
       type: String,
       required: [true, "email is required"],
@@ -36,7 +37,7 @@ const userSchema = mongoose.Schema(
       type: String,
       trim: true,
       default:
-        "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
+        "https://res.cloudinary.com/dmhcnhtng/image/upload/v1643044376/avatars/default_pic_jeaybr.png",
     },
     cover: {
       type: String,

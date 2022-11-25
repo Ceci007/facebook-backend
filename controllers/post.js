@@ -10,7 +10,6 @@ exports.createPost = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
-
 exports.getAllPosts = async (req, res) => {
   try {
     const followingTemp = await User.findById(req.user.id).select("following");
@@ -22,7 +21,6 @@ exports.getAllPosts = async (req, res) => {
         .sort({ createdAt: -1 })
         .limit(10);
     });
-
     const followingPosts = await (await Promise.all(promises)).flat();
     const userPosts = await Post.find({ user: req.user.id })
       .populate("user", "first_name last_name picture username cover")
@@ -42,7 +40,7 @@ exports.getAllPosts = async (req, res) => {
 exports.comment = async (req, res) => {
   try {
     const { comment, image, postId } = req.body;
-    let newComents = await Post.findByIdAndUpdate(
+    let newComments = await Post.findByIdAndUpdate(
       postId,
       {
         $push: {
@@ -54,9 +52,11 @@ exports.comment = async (req, res) => {
           },
         },
       },
-      { new: true }
+      {
+        new: true,
+      }
     ).populate("comments.commentBy", "picture first_name last_name username");
-    res.json(newComents.comments);
+    res.json(newComments.comments);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -95,7 +95,7 @@ exports.savePost = async (req, res) => {
 exports.deletePost = async (req, res) => {
   try {
     await Post.findByIdAndRemove(req.params.id);
-    res.json({ status: "Ok" });
+    res.json({ status: "ok" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

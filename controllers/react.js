@@ -1,7 +1,6 @@
 const React = require("../models/React");
 const User = require("../models/User");
 const mongoose = require("mongoose");
-
 exports.reactPost = async (req, res) => {
   try {
     const { postId, react } = req.body;
@@ -33,6 +32,7 @@ exports.reactPost = async (req, res) => {
 exports.getReacts = async (req, res) => {
   try {
     const reactsArray = await React.find({ postRef: req.params.id });
+
     /*
     const check1 = reacts.find(
       (x) => x.reactBy.toString() == req.user.id
@@ -82,7 +82,7 @@ exports.getReacts = async (req, res) => {
     );
     res.json({
       reacts,
-      check: check ? check.react : null,
+      check: check?.react,
       total: reactsArray.length,
       checkSaved: checkSaved ? true : false,
     });

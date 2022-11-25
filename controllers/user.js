@@ -4,15 +4,15 @@ const {
   validateUsername,
 } = require("../helpers/validation");
 const User = require("../models/User");
-const Code = require("../models/Code");
 const Post = require("../models/Post");
+const Code = require("../models/Code");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const mongoose = require("mongoose");
+const cloudinary = require("cloudinary");
 const { generateToken } = require("../helpers/tokens");
 const { sendVerificationEmail, sendResetCode } = require("../helpers/mailer");
 const generateCode = require("../helpers/generateCode");
-
+const mongoose = require("mongoose");
 exports.register = async (req, res) => {
   try {
     const {
@@ -29,30 +29,30 @@ exports.register = async (req, res) => {
 
     if (!validateEmail(email)) {
       return res.status(400).json({
-        message: "Invalid email address",
+        message: "invalid email address",
       });
     }
     const check = await User.findOne({ email });
     if (check) {
       return res.status(400).json({
         message:
-          "This email address already exists, try with a different email address",
+          "This email address already exists,try with a different email address",
       });
     }
 
     if (!validateLength(first_name, 3, 30)) {
       return res.status(400).json({
-        message: "First name must be between 3 and 30 characters.",
+        message: "first name must between 3 and 30 characters.",
       });
     }
     if (!validateLength(last_name, 3, 30)) {
       return res.status(400).json({
-        message: "Last name must be between 3 and 30 characters.",
+        message: "last name must between 3 and 30 characters.",
       });
     }
     if (!validateLength(password, 6, 40)) {
       return res.status(400).json({
-        message: "Password must be atleast 6 characters.",
+        message: "password must be atleast 6 characters.",
       });
     }
 
@@ -71,12 +71,10 @@ exports.register = async (req, res) => {
       bDay,
       gender,
     }).save();
-
     const emailVerificationToken = generateToken(
       { id: user._id.toString() },
       "30m"
     );
-
     const url = `${process.env.BASE_URL}/activate/${emailVerificationToken}`;
     sendVerificationEmail(user.email, user.first_name, url);
     const token = generateToken({ id: user._id.toString() }, "7d");
@@ -88,13 +86,12 @@ exports.register = async (req, res) => {
       last_name: user.last_name,
       token: token,
       verified: user.verified,
-      message: "Registration Successfull ! please activate your email to start",
+      message: "Register Success ! please activate your email to start",
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.activateAccount = async (req, res) => {
   try {
     const validUser = req.user.id;
@@ -107,11 +104,10 @@ exports.activateAccount = async (req, res) => {
         message: "You don't have the authorization to complete this operation.",
       });
     }
-
     if (check.verified == true) {
       return res
         .status(400)
-        .json({ message: "This email was already activated" });
+        .json({ message: "This email is already activated." });
     } else {
       await User.findByIdAndUpdate(user.id, { verified: true });
       return res
@@ -122,28 +118,23 @@ exports.activateAccount = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-
     if (!user) {
       return res.status(400).json({
         message:
-          "The email address you entered is not connected to an account.",
+          "the email address you entered is not connected to an account.",
       });
     }
-
     const check = await bcrypt.compare(password, user.password);
     if (!check) {
-      return res
-        .status(400)
-        .json({ message: "Invalid credentials, please try again." });
+      return res.status(400).json({
+        message: "Invalid credentials.Please try again.",
+      });
     }
-
     const token = generateToken({ id: user._id.toString() }, "7d");
-
     res.send({
       id: user._id,
       username: user.username,
@@ -157,26 +148,21 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.sendVerification = async (req, res) => {
   try {
     const id = req.user.id;
     const user = await User.findById(id);
-
     if (user.verified === true) {
-      return res
-        .status(400)
-        .json({ message: "This account is already activated." });
+      return res.status(400).json({
+        message: "This account is already activated.",
+      });
     }
-
     const emailVerificationToken = generateToken(
       { id: user._id.toString() },
       "30m"
     );
-
     const url = `${process.env.BASE_URL}/activate/${emailVerificationToken}`;
     sendVerificationEmail(user.email, user.first_name, url);
-
     return res.status(200).json({
       message: "Email verification link has been sent to your email.",
     });
@@ -184,16 +170,15 @@ exports.sendVerification = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.findUser = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email }).select("-password");
-
     if (!user) {
-      return res.status(400).json({ message: "Account does not exist." });
+      return res.status(400).json({
+        message: "Account does not exists.",
+      });
     }
-
     return res.status(200).json({
       email: user.email,
       picture: user.picture,
@@ -227,11 +212,11 @@ exports.validateResetCode = async (req, res) => {
     const { email, code } = req.body;
     const user = await User.findOne({ email });
     const Dbcode = await Code.findOne({ user: user._id });
-
     if (Dbcode.code !== code) {
-      return res.status(400).json({ message: "Verification code is wrong." });
+      return res.status(400).json({
+        message: "Verification code is wrong..",
+      });
     }
-
     return res.status(200).json({ message: "ok" });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -240,15 +225,14 @@ exports.validateResetCode = async (req, res) => {
 
 exports.changePassword = async (req, res) => {
   const { email, password } = req.body;
-  const cryptedPassword = await bcrypt.hash(password, 12);
 
+  const cryptedPassword = await bcrypt.hash(password, 12);
   await User.findOneAndUpdate(
     { email },
     {
       password: cryptedPassword,
     }
   );
-
   return res.status(200).json({ message: "ok" });
 };
 
@@ -304,7 +288,6 @@ exports.updateProfilePicture = async (req, res) => {
     await User.findByIdAndUpdate(req.user.id, {
       picture: url,
     });
-
     res.json(url);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -318,7 +301,6 @@ exports.updateCover = async (req, res) => {
     await User.findByIdAndUpdate(req.user.id, {
       cover: url,
     });
-
     res.json(url);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -338,13 +320,11 @@ exports.updateDetails = async (req, res) => {
         new: true,
       }
     );
-
     res.json(updated.details);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.addFriend = async (req, res) => {
   try {
     if (req.user.id !== req.params.id) {
@@ -376,7 +356,6 @@ exports.addFriend = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.cancelRequest = async (req, res) => {
   try {
     if (req.user.id !== req.params.id) {
@@ -408,7 +387,6 @@ exports.cancelRequest = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.follow = async (req, res) => {
   try {
     if (req.user.id !== req.params.id) {
@@ -436,7 +414,6 @@ exports.follow = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.unfollow = async (req, res) => {
   try {
     if (req.user.id !== req.params.id) {
@@ -464,7 +441,6 @@ exports.unfollow = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.acceptRequest = async (req, res) => {
   try {
     if (req.user.id !== req.params.id) {
@@ -493,7 +469,6 @@ exports.acceptRequest = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.unfriend = async (req, res) => {
   try {
     if (req.user.id !== req.params.id) {
@@ -529,7 +504,6 @@ exports.unfriend = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.deleteRequest = async (req, res) => {
   try {
     if (req.user.id !== req.params.id) {
@@ -571,7 +545,6 @@ exports.search = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.addToSearchHistory = async (req, res) => {
   try {
     const { searchUser } = req.body;
@@ -602,7 +575,6 @@ exports.addToSearchHistory = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.getSearchHistory = async (req, res) => {
   try {
     const results = await User.findById(req.user.id)
@@ -613,7 +585,6 @@ exports.getSearchHistory = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.removeFromSearch = async (req, res) => {
   try {
     const { searchUser } = req.body;
@@ -621,25 +592,21 @@ exports.removeFromSearch = async (req, res) => {
       {
         _id: req.user.id,
       },
-      {
-        $pull: { search: { user: searchUser } },
-      }
+      { $pull: { search: { user: searchUser } } }
     );
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.getFriendsPageInfos = async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
       .select("friends requests")
-      .populate("friends", "fist_name last_name username picture")
-      .populate("requests", "fist_name last_name username picture");
+      .populate("friends", "first_name last_name picture username")
+      .populate("requests", "first_name last_name picture username");
     const sentRequests = await User.find({
       requests: mongoose.Types.ObjectId(req.user.id),
-    }).select("fist_name last_name username picture");
-
+    }).select("first_name last_name picture username");
     res.json({
       friends: user.friends,
       requests: user.requests,

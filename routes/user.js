@@ -3,6 +3,7 @@ const {
   register,
   activateAccount,
   login,
+  auth,
   sendVerification,
   findUser,
   sendResetPasswordCode,
@@ -25,7 +26,7 @@ const {
   removeFromSearch,
   getFriendsPageInfos,
 } = require("../controllers/user");
-const { authUser } = require("../middlewares/auth");
+const { authUser } = require("../middlwares/auth");
 
 const router = express.Router();
 
